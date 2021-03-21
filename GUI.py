@@ -46,11 +46,10 @@ class GUI:
                     for button in self.playing_buttons:
                         if button.highlighted:
                             button.click()
-
             # User inserts a number
             if event.type == pygame.KEYDOWN:
                 if self.selected != None and self.selected not in self.locked_cells:
-                    if self.is_int(event.unicode):
+                    if event.unicode.isdigit():
                         # Cell is changed
                         self.grid[self.selected[1]][self.selected[0]] = int(event.unicode)
                         self.cell_changed = True
@@ -75,9 +74,9 @@ class GUI:
             button.draw(self.window)
 
         if self.selected:
-            self.draw_selection(self.window, self.selected)
+            self.draw_selection(self.selected)
 
-        self.shade_locked_cells(self.window, self.locked_cells)
+        self.shade_locked_cells(self.locked_cells)
         self.shade_incorrect_cells(self.incorrect_cells)
 
         self.draw_numbers(self.window)
@@ -180,21 +179,30 @@ class GUI:
                     position = [xidx*CELL_SIZE + X_GRID_POSITION, yidx*CELL_SIZE + Y_GRID_POSITION]
                     self.text_to_screen(window, str(num), position)
       
-    def draw_selection(self, window, position):
-        pygame.draw.rect(self.window, LIGHTBLUE, ((position[0]*CELL_SIZE)+X_GRID_POSITION, (position[1]*CELL_SIZE)+Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
+    def draw_selection(self, position):
+        x = (position[0]*CELL_SIZE)+X_GRID_POSITION
+        y = (position[1]*CELL_SIZE)+Y_GRID_POSITION
+        rect_coor = (x, y, CELL_SIZE, CELL_SIZE)
+
+        pygame.draw.rect(self.window, LIGHTBLUE, rect_coor)
     
     def draw_grid(self, window):
         pygame.draw.rect(window, BLACK, (X_GRID_POSITION, Y_GRID_POSITION, WIDTH - PADDING, HEIGHT - PADDING), THICKNESS)
         for x in range(9):
-            pygame.draw.line(self.window, BLACK, (X_GRID_POSITION + (x*CELL_SIZE), Y_GRID_POSITION), (X_GRID_POSITION + (x*CELL_SIZE), Y_GRID_POSITION + 450), 3 if x % 3 == 0 else 1)
-            pygame.draw.line(self.window, BLACK, (X_GRID_POSITION, (x*CELL_SIZE) + Y_GRID_POSITION), (X_GRID_POSITION + 450, (x*CELL_SIZE) + Y_GRID_POSITION), 3 if x % 3 == 0 else 1)
+            vertical_starting_point = (X_GRID_POSITION + x * CELL_SIZE, Y_GRID_POSITION)
+            vertical_ending_point = (X_GRID_POSITION + (x*CELL_SIZE), GRID_HEIGHT)
+            horizontal_starting_point = (X_GRID_POSITION, (x*CELL_SIZE) + Y_GRID_POSITION)
+            horizontal_ending_point = (GRID_WIDTH, (x*CELL_SIZE) + Y_GRID_POSITION)
+            bold_line_offset = 3 if x % 3 == 0 else 1
+
+            pygame.draw.line(self.window, BLACK, vertical_starting_point, vertical_ending_point, bold_line_offset)
+            pygame.draw.line(self.window, BLACK, horizontal_starting_point, horizontal_ending_point, bold_line_offset)
 
     def mouse_on_grid(self):
         for mouse_pos, grid_pos in zip(self.mouse_position, GRID_POSITION):
             if grid_pos >= mouse_pos or mouse_pos >= grid_pos + GRID_SIZE:
                 return False
 
-        # CHECK HOW TO IMPROVE WITH LAMBDA FUNCTION
         cell_x = (self.mouse_position[0] - X_GRID_POSITION) // CELL_SIZE
         cell_y = (self.mouse_position[1] - Y_GRID_POSITION) // CELL_SIZE
         return (cell_x, cell_y)
@@ -204,12 +212,12 @@ class GUI:
         solve_button_position = (440, 40, WIDTH//7, 40)
 
         self.playing_buttons.append(Button(*check_button_position,
-                                           function = self.check_all_cells,
-                                           colour = 'blue', text = "Check"))
+                                           function=self.check_all_cells,
+                                           colour='blue', text="Check"))
 
         self.playing_buttons.append(Button(*solve_button_position,
-                                           function = self.solve,
-                                           colour = 'green', text = "SOLVE!"))
+                                           function=self.call_solver,
+                                           colour='green', text="SOLVE!"))
 
 
     '''
@@ -231,45 +239,14 @@ class GUI:
                 if num != 0:
                     self.locked_cells.append([xidx, yidx])
 
-    def shade_locked_cells(self, window, locked):
+    def shade_locked_cells(self, locked):
         for cell in locked:
-            pygame.draw.rect(window, LOCKEDCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(self.window, LOCKEDCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
 
     def shade_incorrect_cells(self, incorrect):
         for cell in incorrect:
             pygame.draw.rect(self.window, INCORRECTCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
 
-    def is_int(self, string):
-        try:
-            int(string)
-            return True
-        except:
-            return False
-
-    def find_empty(self):
-        coor = []
-        for row in range(9):
-            for col in range(9):
-                if not self.grid[row][col]:
-                    coor.append(row)
-                    coor.append(col)
-                    return coor
-        
-        return [-1, -1]
-
-    def solve(self):
-        find = self.find_empty()
-        if find != [-1, -1]:
-            row = find[0]
-            col = find[1]
-        else:
-            return True
-
-        for num in range(1, 10):
-            if(self.number_valid_in_board(num, (row, col))):
-                self.grid[row][col] = num
-                if self.solve():
-                    return True
-                self.grid[row][col] = 0
-        
-        return False
+    def call_solver(self):
+        solver = SudokuSolver(self.grid)
+        return solver.solve()
