@@ -1,7 +1,16 @@
 import pygame
 
 class Button:
-    def __init__(self, x, y, width, height, text = None, colour = (73, 73, 73), highlighted_colour= (189, 189, 189), function = None, params = None) -> None:
+    colours = {
+        'blue': (27, 142, 207),
+        'gray': (73, 73, 73),
+        'green': (3, 162, 2),
+        'cyan': (189, 189, 189)
+    }
+    _colour = colours['gray']
+    _highlighted_colour = colours['cyan']
+    def __init__(self, x, y, width, height, text=None,\
+                 colour=None, highlighted_colour=None, function=None, params=None) -> None:
         self.image = pygame.Surface((width, height))
         self.position = (x, y)
         self.rect = self.image.get_rect()
@@ -15,6 +24,26 @@ class Button:
         self.width = width
         self.height = height
 
+    @property
+    def colour(self):
+        return self._colour
+
+    @colour.setter
+    def colour(self, colour):
+        if colour and self.colours.get(colour):
+            self._colour = self.colours[colour]
+        else:
+            self._colour = self.colours['gray']
+
+    @property
+    def highlighted_colour(self):
+        return self._highlighted_colour
+    
+    @highlighted_colour.setter
+    def highlighted_colour(self, hightlighted_colour):
+        if hightlighted_colour:
+            self._highlighted_colour = hightlighted_colour
+    
     def update(self, mouse):
         if self.rect.collidepoint(mouse):
             self.highlighted = True

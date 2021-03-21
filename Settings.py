@@ -9,9 +9,15 @@ LOCKEDCELLCOLOUR = (189, 189, 189)
 INCORRECTCELLCOLOUR = (195, 121, 121)
 
 # Positions and sizes
-grid_position = (75, 100)
-cell_size = 50
-grid_size = cell_size * 9
+GRID_POSITION = (75, 100)
+X_GRID_POSITION = GRID_POSITION[0]
+Y_GRID_POSITION = GRID_POSITION[1]
+CELL_SIZE = 50
+GRID_SIZE = CELL_SIZE * 9
+PADDING = 150
+THICKNESS = 2
+
+
 
 # Test boards
 board = [

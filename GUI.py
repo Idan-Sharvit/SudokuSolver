@@ -8,7 +8,6 @@ class GUI:
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.running = True
         self.grid = board
-        print(self.grid)
         self.selected = None
         self.mouse_position = None
         self.state = "playing"
@@ -17,7 +16,7 @@ class GUI:
         self.playing_buttons = []
         self.locked_cells = []
         self.incorrect_cells = []
-        self.font = pygame.font.SysFont(("arial"), cell_size//2)
+        self.font = pygame.font.SysFont(("arial"), CELL_SIZE//2)
         self.load()
     
     def run(self):
@@ -29,7 +28,7 @@ class GUI:
         pygame.quit()
         sys.exit()
 
-##### PLAYING STATE FUNCTIONS #####
+    ##### PLAYING STATE FUNCTIONS #####
 
     def playing_events(self):
         for event in pygame.event.get():
@@ -65,7 +64,7 @@ class GUI:
             if self.all_cells_done():
                 # Checks if board is correct
                 self.check_all_cells()
-                if len(self.incorrect_cells) == 0:
+                if not len(self.incorrect_cells):
                     self.finished = True
                     print("Congratulations")
 
@@ -78,14 +77,15 @@ class GUI:
             self.draw_selection(self.window, self.selected)
 
         self.shade_locked_cells(self.window, self.locked_cells)
-        self.shade_incorrect_cells(self.window, self.incorrect_cells)
+        self.shade_incorrect_cells(self.incorrect_cells)
 
         self.draw_numbers(self.window)
-        self.drawGrid(self.window)
+        self.draw_grid(self.window)
         pygame.display.update()
         self.cell_changed = False
 
-##### BOARD CHECKING FUNCTIONS #####
+    ##### BOARD CHECKING FUNCTIONS #####
+    
     def all_cells_done(self):
         for row in self.grid:
             for num in row:
@@ -95,16 +95,16 @@ class GUI:
 
     def number_valid_in_board(self, number_to_try: int, position: tuple) -> bool:
         row, col = position
-        # Checking row
+        # Checks row
         for i in range(9):
             if self.grid[row][i] == number_to_try and i != col:
                 return False
-        # Checking col
+        # Checks col
         for i in range(9):
             if self.grid[i][col] == number_to_try and i != row:
                 return False
 
-        # Checking 3x3 subgrid
+        # Checks 3x3 subgrid
         first_element_in_row, first_element_in_col = row, col
 
         first_element_in_row = row - row % 3
@@ -153,7 +153,7 @@ class GUI:
     def check_sub_grid(self):
         for x in range(3):
             for y in range(3):
-                possibles = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+                possibles = [1,2,3,4,5,6,7,8,9]
                 for i in range(3):
                     for j in range(3):
                         xidx = x*3+i
@@ -170,49 +170,56 @@ class GUI:
                                     if self.grid[yidx2][xidx2] == self.grid[yidx][xidx] and [xidx2, yidx] not in self.locked_cells:
                                         self.incorrect_cells.append*[xidx2, yidx2]
 
-##### HELPER FUNCTIONS #####
+    ##### HELPER FUNCTIONS #####
 
     def draw_numbers(self, window):
         for yidx, row in enumerate(self.grid):
             for xidx, num in enumerate(row):
                 if num != 0:
-                    position = [xidx*cell_size + grid_position[0], yidx*cell_size + grid_position[1]]
-                    self.text_to_screen(window, str(num), position, BLACK)
+                    position = [xidx*CELL_SIZE + X_GRID_POSITION, yidx*CELL_SIZE + Y_GRID_POSITION]
+                    self.text_to_screen(window, str(num), position)
       
     def draw_selection(self, window, position):
-        pygame.draw.rect(window, LIGHTBLUE, ((position[0]*cell_size)+grid_position[0], (position[1]*cell_size)+grid_position[1], cell_size, cell_size))
+        pygame.draw.rect(self.window, LIGHTBLUE, ((position[0]*CELL_SIZE)+X_GRID_POSITION, (position[1]*CELL_SIZE)+Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
     
-    def drawGrid(self, window):
-        x_pos_grid, y_pos_grid = grid_position
-        pygame.draw.rect(window, BLACK, (x_pos_grid, y_pos_grid, WIDTH - 150, HEIGHT - 150), 2)
+    def draw_grid(self, window):
+        pygame.draw.rect(window, BLACK, (X_GRID_POSITION, Y_GRID_POSITION, WIDTH - PADDING, HEIGHT - PADDING), THICKNESS)
         for x in range(9):
-            pygame.draw.line(self.window, BLACK, (x_pos_grid + (x*cell_size), y_pos_grid), (x_pos_grid + (x*cell_size), y_pos_grid + 450), 3 if x % 3 == 0 else 1)
-            pygame.draw.line(self.window, BLACK, (x_pos_grid, (x*cell_size) + y_pos_grid), (x_pos_grid + 450, (x*cell_size) + y_pos_grid), 3 if x % 3 == 0 else 1)
+            pygame.draw.line(self.window, BLACK, (X_GRID_POSITION + (x*CELL_SIZE), Y_GRID_POSITION), (X_GRID_POSITION + (x*CELL_SIZE), Y_GRID_POSITION + 450), 3 if x % 3 == 0 else 1)
+            pygame.draw.line(self.window, BLACK, (X_GRID_POSITION, (x*CELL_SIZE) + Y_GRID_POSITION), (X_GRID_POSITION + 450, (x*CELL_SIZE) + Y_GRID_POSITION), 3 if x % 3 == 0 else 1)
 
     def mouse_on_grid(self):
-        if self.mouse_position[0] < grid_position[0] or self.mouse_position[1] < grid_position[1]:
-            return False
-        
-        if self.mouse_position[0] > grid_position[0] + grid_size or self.mouse_position[1] > grid_position[1] + grid_size:
-            return False
+        for mouse_pos, grid_pos in zip(self.mouse_position, GRID_POSITION):
+            if grid_pos >= mouse_pos or mouse_pos >= grid_pos + GRID_SIZE:
+                return False
 
-        return ((self.mouse_position[0] - grid_position[0])//cell_size, (self.mouse_position[1] - grid_position[1])//cell_size)
+        # CHECK HOW TO IMPROVE WITH LAMBDA FUNCTION
+        cell_x = (self.mouse_position[0] - X_GRID_POSITION) // CELL_SIZE
+        cell_y = (self.mouse_position[1] - Y_GRID_POSITION) // CELL_SIZE
+        return (cell_x, cell_y)
 
     def load_buttons(self):
-        self.playing_buttons.append(Button(75, 40, WIDTH//7, 40,
+        check_button_position = (75, 40, WIDTH//7, 40)
+        solve_button_position = (440, 40, WIDTH//7, 40)
+
+        self.playing_buttons.append(Button(*check_button_position,
                                            function = self.check_all_cells,
-                                           colour = (27, 142, 207), text = "Check"))
+                                           colour = 'blue', text = "Check"))
 
-        self.playing_buttons.append(Button(440, 40, WIDTH//7, 40,
+        self.playing_buttons.append(Button(*solve_button_position,
                                            function = self.solve,
-                                           colour = (3, 162, 2), text = "SOLVE!"))
+                                           colour = 'green', text = "SOLVE!"))
 
-    def text_to_screen(self, window, text, position, colour):
+
+    '''
+    I used the "position" variable to center the numbers in the cells
+    '''
+    def text_to_screen(self, window, text, position):
         font = self.font.render(text, False, BLACK)
         font_width = font.get_width()
         font_height = font.get_height()
-        position[0] += (cell_size - font_width) // 2
-        position[1] += (cell_size - font_height) // 2
+        position[0] += (CELL_SIZE - font_width) // 2
+        position[1] += (CELL_SIZE - font_height) // 2
         window.blit(font, position)
 
     # Setting locked cells from original board
@@ -225,11 +232,11 @@ class GUI:
 
     def shade_locked_cells(self, window, locked):
         for cell in locked:
-            pygame.draw.rect(window, LOCKEDCELLCOLOUR, (cell[0]*cell_size + grid_position[0], cell[1]*cell_size + grid_position[1], cell_size, cell_size))
+            pygame.draw.rect(window, LOCKEDCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
 
-    def shade_incorrect_cells(self, window, incorrect):
+    def shade_incorrect_cells(self, incorrect):
         for cell in incorrect:
-            pygame.draw.rect(window, INCORRECTCELLCOLOUR, (cell[0]*cell_size + grid_position[0], cell[1]*cell_size + grid_position[1], cell_size, cell_size))
+            pygame.draw.rect(self.window, INCORRECTCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
 
     def is_int(self, string):
         try:
