@@ -1,6 +1,7 @@
 import pygame, sys
 from Settings import *
 from buttonClass import *
+from Sudoku import *
 
 class GUI:
     def __init__(self):
