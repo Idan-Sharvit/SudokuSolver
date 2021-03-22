@@ -28,6 +28,7 @@ class GUI:
                 self.playing_draw()
         pygame.quit()
         sys.exit()
+        
 
     ##### PLAYING STATE FUNCTIONS #####
 
@@ -35,7 +36,6 @@ class GUI:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
-            
             # User clicks
             if event.type == pygame.MOUSEBUTTONDOWN:
                 selected = self.mouse_on_grid()
@@ -48,10 +48,12 @@ class GUI:
                             button.click()
             # User inserts a number
             if event.type == pygame.KEYDOWN:
-                if self.selected != None and self.selected not in self.locked_cells:
+                if self.selected != None and list(self.selected) not in self.locked_cells:
                     if event.unicode.isdigit():
                         # Cell is changed
-                        self.grid[self.selected[1]][self.selected[0]] = int(event.unicode)
+                        row = self.selected[1]
+                        col = self.selected[0]
+                        self.grid[row][col] = int(event.unicode)
                         self.cell_changed = True
 
     def playing_update(self):
@@ -84,23 +86,24 @@ class GUI:
         pygame.display.update()
         self.cell_changed = False
 
+
     ##### BOARD CHECKING FUNCTIONS #####
     
     def all_cells_done(self):
         for row in self.grid:
             for num in row:
-                if num == 0:
+                if not num:
                     return False
         return True
 
     def number_valid_in_board(self, number_to_try: int, position: tuple) -> bool:
         row, col = position
         # Checks row
-        for i in range(9):
+        for i in range(len(self.grid)):
             if self.grid[row][i] == number_to_try and i != col:
                 return False
         # Checks col
-        for i in range(9):
+        for i in range(len(self.grid)):
             if self.grid[i][col] == number_to_try and i != row:
                 return False
 
@@ -170,6 +173,7 @@ class GUI:
                                     if self.grid[yidx2][xidx2] == self.grid[yidx][xidx] and [xidx2, yidx] not in self.locked_cells:
                                         self.incorrect_cells.append*[xidx2, yidx2]
 
+
     ##### HELPER FUNCTIONS #####
 
     def draw_numbers(self, window):
@@ -220,9 +224,8 @@ class GUI:
                                            colour='green', text="SOLVE!"))
 
 
-    '''
-    I used the "position" variable to center the numbers in the cells
-    '''
+
+    # I used the "position" variable to center the numbers in the cells
     def text_to_screen(self, window, text, position):
         font = self.font.render(text, False, BLACK)
         font_width = font.get_width()
@@ -241,11 +244,15 @@ class GUI:
 
     def shade_locked_cells(self, locked):
         for cell in locked:
-            pygame.draw.rect(self.window, LOCKEDCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
+            cell_coor = (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE)
+
+            pygame.draw.rect(self.window, LOCKEDCELLCOLOUR, cell_coor)
 
     def shade_incorrect_cells(self, incorrect):
         for cell in incorrect:
-            pygame.draw.rect(self.window, INCORRECTCELLCOLOUR, (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE))
+            cell_coor = (cell[0]*CELL_SIZE + X_GRID_POSITION, cell[1]*CELL_SIZE + Y_GRID_POSITION, CELL_SIZE, CELL_SIZE)
+
+            pygame.draw.rect(self.window, INCORRECTCELLCOLOUR, cell_coor)
 
     def call_solver(self):
         solver = SudokuSolver(self.grid)

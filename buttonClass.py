@@ -1,4 +1,5 @@
 import pygame
+from Settings import *
 
 class Button:
     colours = {
@@ -9,6 +10,7 @@ class Button:
     }
     _colour = colours['gray']
     _highlighted_colour = colours['cyan']
+    
     def __init__(self, x, y, width, height, text=None,\
                  colour=None, highlighted_colour=None, function=None, params=None) -> None:
         self.image = pygame.Surface((width, height))
@@ -69,10 +71,10 @@ class Button:
 
     def draw_text(self, text):
         font = pygame.font.SysFont("arial", 20, bold=1)
-        text = font.render(text, False, (0,0,0))
+        text = font.render(text, False, BLACK)
         width, height = text.get_size()
-        x = (self.width - width)//2
-        y = (self.height - height)//2
+        x = (self.width - width) // 2
+        y = (self.height - height) // 2
         self.image.blit(text, (x, y))
         
 
