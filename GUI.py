@@ -127,7 +127,7 @@ class GUI:
 
     def check_rows(self):
         for yidx, row in enumerate(self.grid):
-            possibles = [1,2,3,4,5,6,7,8,9]
+            possibles = list(range(1, 10))
             for xidx in range(9):
                 if self.grid[yidx][xidx] in possibles:
                     possibles.remove(self.grid[yidx][xidx])
@@ -141,7 +141,7 @@ class GUI:
 
     def check_cols(self):
         for xidx in range(9):
-            possibles = [1,2,3,4,5,6,7,8,9]
+            possibles = list(range(1, 10))
             for yidx, row in enumerate(self.grid):
                 if self.grid[yidx][xidx] in possibles:
                     possibles.remove(self.grid[yidx][xidx])
@@ -156,7 +156,7 @@ class GUI:
     def check_sub_grid(self):
         for x in range(3):
             for y in range(3):
-                possibles = [1,2,3,4,5,6,7,8,9]
+                possibles = list(range(1, 10))
                 for i in range(3):
                     for j in range(3):
                         xidx = x*3+i
@@ -216,11 +216,11 @@ class GUI:
         solve_button_position = (440, 40, WIDTH//7, 40)
 
         self.playing_buttons.append(Button(*check_button_position,
-                                           function=self.check_all_cells,
+                                           click=self.check_all_cells,
                                            colour='blue', text="Check"))
 
         self.playing_buttons.append(Button(*solve_button_position,
-                                           function=self.call_solver,
+                                           click=self.call_solver,
                                            colour='green', text="SOLVE!"))
 
 
